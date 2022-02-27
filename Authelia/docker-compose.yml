@@ -1,0 +1,111 @@
+---
+###############################################################################
+#                           Authelia Configuration                            #
+###############################################################################
+
+# Choose light/dark/grey theme
+theme: dark
+
+### Token Generated randomly
+jwt_secret: dummy-value-jwt_secret
+
+### The Default URL u wanna be redirected after login
+default_redirection_url: https://www.google.com/
+
+### All this stay default
+server:
+  host: 0.0.0.0
+  port: 9091
+  path: ""
+  read_buffer_size: 4096
+  write_buffer_size: 4096
+  enable_pprof: false
+  enable_expvars: false
+  disable_healthcheck: false
+  tls:
+    key: ""
+    certificate: ""
+
+### The level u wanna see in the logs:
+### debug, info, warn, error, fatal
+log:
+  level: debug
+
+totp:
+  issuer: dummy-value.com
+  period: 30
+  skew: 1
+
+
+### The Auth Backend and if u will use a Database or a yml file for users & the algorithm used to encrypt the passwords
+### To generate a password with argon2id use this page: https://argon2.online/
+authentication_backend:
+  disable_reset_password: false
+  refresh_interval: 5m
+  file:
+    path: /config/users_database.yml
+    password:
+      algorithm: argon2id
+      iterations: 1
+      key_length: 32
+      salt_length: 16
+      memory: 1024
+      parallelism: 8
+
+
+### The Access Control List, its more easy DENY ALL except the followings URLS
+### The Policy allows use Simple Login or Second Factor Authentication
+access_control:
+  default_policy: deny
+  rules:
+    - domain:
+        - "auth.dummy-value.com"
+      policy: bypass
+    - domain: "dummy-value.dummy-value.com"
+      policy: one_factor
+    - domain: "dummy-value2.dummy-value.com"
+      policy: one_factor
+    - domain: "dummy-value3.dummy-value.com"
+    - domain: "dummy-value4.dummy-value.com"
+      policy: one_factor
+    - domain: "dummy-value5.dummy-value.com"
+      policy: one_factor
+
+### 
+session:
+  name: authelia_session
+  secret: dummy-value
+  expiration: 3600
+  inactivity: 300
+  domain: dummy-value.com
+
+### 
+regulation:
+  max_retries: 3
+  find_time: 10m
+  ban_time: 12h
+
+### Where you will save the users cookies
+storage:
+  local:
+    path: /config/db.sqlite3
+  encryption_key: dummy-value
+
+
+### Notify if something goes wrong
+notifier:
+  disable_startup_check: true
+  smtp:
+    username: dummy-value@gmail.com
+    password: dummy-value-password
+    host: smtp.gmail.com
+    port: 587
+    sender: dummy-value@gmail.com
+    identifier: localhost
+    subject: "[Authelia] {title}"
+    startup_check_address: dummy-value@gmail.com
+    disable_require_tls: false
+    disable_html_emails: false
+    tls:
+      skip_verify: false
+      minimum_version: TLS1.2

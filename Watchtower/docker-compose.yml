@@ -1,0 +1,35 @@
+---
+version: "3.9"
+
+services:
+  watch-tower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    ports:
+      - 8081:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock      
+    environment:
+      - TZ=${TZ}
+      - NO_COLOR=${NO_COLOR}
+      - WATCHTOWER_SCHEDULE=${SCHEDULE}
+      - WATCHTOWER_REMOVE_VOLUMES=${REMOVE_VOLUMES}
+      - WATCHTOWER_INCLUDE_STOPPED=${INCLUDE_STOPPED}
+      - WATCHTOWER_INCLUDE_RESTARTING=${INCLUDE_RESTART}
+      - WATCHTOWER_MONITOR_ONLY=${MONITOR_ONLY}
+      - WATCHTOWER_LABEL_ENABLE=${LABEL_ENABLE}
+      - WATCHTOWER_NOTIFICATIONS=${NOTIFICATIONS}
+      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=${NOTIFICATIONS_HOSTNAME}
+      - WATCHTOWER_NOTIFICATION_URL=${NOTIFICATIONS_URL}
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_API_TOKEN}
+      - WATCHTOWER_HTTP_API_METRICS=${WATCHTOWER_API_METRICS}
+      - UID=${UID}
+      - GID=${GID}
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=${LABEL}"
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

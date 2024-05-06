@@ -1,0 +1,20 @@
+---
+version: '3.9'
+
+services:
+  cloudflare-ddns:
+    image: joshava/cloudflare-ddns
+    container_name: cloudflare-ddns
+    volumes:
+      - ${CF_PATH}:/app/config.yaml
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

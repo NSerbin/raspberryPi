@@ -1,0 +1,21 @@
+---
+version: '3.9'
+
+services:
+  authelia:
+    image: authelia/authelia:latest
+    container_name: Authelia
+    volumes:
+      - ${AUTHELIA_PATH}:/config
+    ports:
+      - 9091:9091
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  default:
+    name: ${AUTHELIA_NETWORK}
+    external: true

@@ -1,0 +1,100 @@
+---
+version: '3.9'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    user: '${USER}'
+    volumes:
+      - ${PMT_YML}:/etc/prometheus/prometheus.yml
+      - ${PMT_PATH}:/prometheus
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"    
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle' 
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - 3000:3000
+    user: '${USER}'
+    environment:
+      - GF_PATHS_CONFIG=${GF_PATHS_CONFIG}
+      - GF_PATHS_DATA=${GF_PATHS_DATA}
+      - GF_PATHS_HOME=${GF_PATHS_HOME}
+      - GF_PATHS_LOGS=${GF_PATHS_LOGS}
+      - GF_PATHS_PLUGINS=${GF_PATHS_PLUGINS}
+      - GF_PATHS_PROVISIONING=${GF_PATHS_PROVISIONING}
+      - GF_SMTP_ENABLED=${GF_SMTP_ENABLED}
+      - GF_SMTP_HOST=${GF_SMTP_HOST}
+      - GF_SMTP_USER=${GF_SMTP_USER}
+      - GF_SMTP_PASSWORD=${GF_SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS}
+      - GF_SMTP_SKIP_VERIFY=${GF_SMTP_SKIP_VERIFY}
+      - GF_SMTP_FROM_NAME=${GF_SMTP_FROM_NAME}
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL}
+    volumes:
+      - ${GF_PATH}:/var/lib/grafana
+      - ${GF_INI}:/etc/grafana/grafana.ini
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:3000"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s        
+    
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    expose:
+      - 9100
+    volumes:
+      - ${HOST_PROC}:/host/proc:ro
+      - ${HOST_SYS}:/host/sys:ro
+      - ${HOST_PATH}:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      
+  cadvisor:
+    image: zcube/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - 8080:8080
+    volumes:
+      - ${HOST_PATH}:/rootfs:ro
+      - ${HOST_RUN}:/var/run:ro
+      - ${HOST_SYS}:/sys:ro
+      - ${DOCKER}:/var/lib/docker:ro
+      - ${DISK}:/dev/disk:ro
+    command:
+      - "--docker_only=true"
+      - "--housekeeping_interval=30s"  
+    restart: unless-stopped
+    devices:
+      - ${DEVICE}
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

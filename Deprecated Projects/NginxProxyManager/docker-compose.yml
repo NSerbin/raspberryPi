@@ -1,0 +1,61 @@
+---
+version: '3.9'
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginxproxymanager-app
+    ports:
+      - 80:80
+      - 81:81
+      - 443:443
+    environment:
+      DB_MYSQL_HOST: ${DB_MYSQL_HOST}
+      DB_MYSQL_PORT: ${DB_MYSQL_PORT}
+      DB_MYSQL_USER: ${DB_MYSQL_USER}
+      DB_MYSQL_PASSWORD: ${DB_MYSQL_PASSWORD}
+      DB_MYSQL_NAME: ${DB_MYSQL_NAME}
+      PUID: ${PUID}
+      PGID: ${PGID}
+    volumes:
+      - ${NPM_CONFIG_FILE}:/app/config/production.json
+      - ${NPM_CONFIG_PATH}:/data
+      - ${NPM_SSL_PATH}:/etc/letsencrypt
+      - ${NPM_LOGS_PATH}:/data/logs
+    restart: unless-stopped
+    healthcheck:
+      test: curl --fail http://localhost || exit 1
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      - nginxproxymanager-db
+
+  db:
+    image: 'yobasystems/alpine-mariadb:latest'
+    container_name: nginxproxymanager-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      PUID: ${PUID}
+      PGID: ${PGID}
+    volumes:
+      - ${NPM_DB_PATH}:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "-u$MYSQL_USER", "-p$MYSQL_PASSWORD",  "ping", "-h", "localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

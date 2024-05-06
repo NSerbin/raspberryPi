@@ -1,0 +1,23 @@
+---
+version: "3.9"
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage-app
+    ports:
+      - 3002:3000
+    volumes:
+      - ${HOMEPAGE_PATH}:/app/config
+      - ${DOCKER_PATH}:/var/run/docker.sock
+    environment:
+#      PUID: ${PUID}
+#      PGID: ${PGID}
+      TZ: ${TZ}
+    restart: unless-stopped      
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"  
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

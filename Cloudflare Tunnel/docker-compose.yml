@@ -1,0 +1,15 @@
+---
+version: '3.9'
+services:
+  cloudflare-tunnel:
+    image: erisamoe/cloudflared
+    container_name: cloudflare-tunnel-app
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+      - TUNNEL_METRICS=${TUNNEL_METRICS}
+    ports:
+      - 60123:60123
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"

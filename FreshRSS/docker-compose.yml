@@ -1,0 +1,57 @@
+---
+version: "3.9"
+services:
+  freshrss-app:
+    image: linuxserver/freshrss:latest
+    container_name: freshrss-app
+    ports:
+      - 85:80
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      DB_MYSQL_HOST: ${DB_MYSQL_HOST}
+      DB_MYSQL_PORT: ${DB_MYSQL_PORT}
+      DB_MYSQL_USER: ${DB_MYSQL_USER}
+      DB_MYSQL_PASSWORD: ${DB_MYSQL_PASSWORD}
+      DB_MYSQL_NAME: ${DB_MYSQL_NAME}      
+    volumes:
+      - ${RSS_PATH}:/config
+    restart: unless-stopped
+    healthcheck:
+      test: curl --fail http://localhost || exit 1
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s         
+    depends_on:
+      - db
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"      
+      
+  db:
+    image: 'yobasystems/alpine-mariadb:latest'
+    container_name: freshrss-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      PUID: ${PUID}
+      PGID: ${PGID}
+    volumes:
+      - ${DB_PATH}:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "-u$MYSQL_USER", "-p$MYSQL_PASSWORD",  "ping", "-h", "localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s      
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"    
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

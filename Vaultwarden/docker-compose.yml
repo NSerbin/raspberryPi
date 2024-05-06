@@ -1,0 +1,59 @@
+---
+version: "3.9"
+services:
+  bitwarden:
+    image: vaultwarden/server:latest
+    container_name: bitwarden-app
+    volumes:
+      - ${BTW_PATH}:/data/
+    ports:
+      - 8484:80
+    environment:
+      - DATABASE_URL=$DATABASE_URL
+      - ADMIN_TOKEN=$ADMIN_TOKEN
+      - RUST_BACKTRACE=$RUST_BACKTRACE
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_FROM=${SMTP_FROM}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURITY=${SMTP_SECURITY}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_AUTH_MECHANISM="${SMTP_AUTH_MECHANISM}"
+    healthcheck:
+      test: curl --fail http://localhost || exit 1
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s      
+    depends_on:
+      - btw-database
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"    
+  
+  btw-database:
+    image: 'yobasystems/alpine-mariadb:latest'
+    container_name: bitwarden-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      PUID: ${PUID}
+      PGID: ${PGID}
+    volumes:
+      - ${BTW_DB_PATH}:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "-u$MYSQL_USER", "-p$MYSQL_PASSWORD",  "ping", "-h", "localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"    
+    
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

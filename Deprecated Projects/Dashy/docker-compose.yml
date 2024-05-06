@@ -1,0 +1,30 @@
+---
+version: "3.9"
+services:
+  dashboard:
+    image: lissy93/dashy:latest
+    container_name: dashboard
+    volumes:
+      - ${DASH_PATH}:/app/public/conf.yml
+      - ${CRYPTO_PATH}:/app/public/crypto.yml
+      - ${ICONS_PATH}:/app/public/item-icons/
+    ports:
+      - 4000:80
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - UID=${UID}
+      - GID=${GID}
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'node', '/app/services/healthcheck']
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

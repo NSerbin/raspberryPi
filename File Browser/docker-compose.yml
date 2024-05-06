@@ -1,0 +1,34 @@
+---
+version: "3.9"
+
+services:
+  filebrowser:
+    image: hurlenko/filebrowser:latest
+    container_name: filebrowser
+    ports:
+      - 8082:8080
+    volumes:
+      - ${FB_PATH}:/data
+      - ${FB_CONFIG_PATH}:/config
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - FB_BASEURL=/
+      - LETSENCRYPT_HOST=${DOMAIN}
+      - LETSENCRYPT_EMAIL=${EMAIL}    
+      - VIRTUAL_HOST=${DOMAIN}      
+    restart: unless-stopped  
+    healthcheck:
+      test: ["CMD", "wget", "-O", "/dev/null", "http://localhost:8080"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"    
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

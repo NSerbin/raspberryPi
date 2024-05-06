@@ -1,0 +1,30 @@
+---
+version: "3.9"
+services:
+  remmina:
+    image: linuxserver/remmina:arm32v7-1.4.2
+    container_name: remmina
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - TITLE=${TITLE}
+    ports:
+      - 3011:3000
+      - 3012:3001
+    restart: unless-stopped
+    healthcheck:
+      test: curl --fail http://localhost:3000 || exit 1
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    security_opt:
+      - seccomp:unconfined
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"      
+      
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

@@ -1,0 +1,76 @@
+---
+version: '3.9'
+services:
+  n8n:
+    image: n8nio/n8n:1.24.1
+    container_name: n8n-app
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${N8N_PATH}:/files
+    ports:
+      - 5678:85
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL}
+      - N8N_BASIC_AUTH_USER=${N8N_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=${N8N_PROTOCOL}
+      - NODE_ENV=${N8N_NODE_ENV}
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - GENERIC_TIMEZONE=${TZ}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_HOST=${POSTGRES_HOST}
+      - DB_POSTGRESDB_PORT=${POSTGRES_PORT}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=public
+      - VUE_APP_URL_BASE_API=${N8N_URL_BASE_API}
+      - N8N_EMAIL_MODE=smtp
+      - N8N_SMTP_PORT=${SMTP_PORT}
+      - N8N_SMTP_HOST=${SMTP_HOST}
+      - N8N_SMTP_USER=${SMTP_USERNAME}
+      - N8N_SMTP_PASS=${SMTP_PASSWORD}
+      - N8N_SMTP_SENDER=${SMTP_FROM}
+      - N8N_SMTP_SSL=false      
+    depends_on:
+      n8n-db:
+        condition: service_healthy
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  n8n-db:
+    image: postgres:14.3-alpine3.16
+    container_name: n8n-db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - POSTGRES_NON_ROOT_USER=${POSTGRES_NON_ROOT_USER}
+      - POSTGRES_NON_ROOT_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
+    volumes:
+      - ${N8N_DB_PATH}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB", "-h", "localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+volumes:
+  n8n_data:
+    external: true
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

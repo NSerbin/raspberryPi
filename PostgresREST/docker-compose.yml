@@ -13,12 +13,12 @@ services:
       - postgres:postgres
     depends_on:
       - postgres
+    restart: unless-stopped      
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
   postgres:
     image: postgres/16.3-alpine3.20
-    restart: always
     container_name: postgrest-db    
     environment:
       - POSTGRES_DB=${POSTGRES_DB}

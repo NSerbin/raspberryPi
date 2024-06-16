@@ -1,0 +1,44 @@
+---
+version: "3.9"
+services:
+  postgrest:
+    image: postgrest/postgrest
+    ports:
+      - "3002:3000"
+    environment:
+      PGRST_DB_URI: postgres://user:password@postgres:5432/db
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: user
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  postgres:
+    image: postgres/16.3-alpine3.20
+    restart: always
+    container_name: postgrest-db    
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PUID=${PUID}
+      - PGID=${PGID}    
+    volumes:
+      - ${POSTGREST_DB_PATH}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB", "-h", "localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

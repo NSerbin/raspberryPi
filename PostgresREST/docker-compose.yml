@@ -6,9 +6,9 @@ services:
     ports:
       - "3003:3000"
     environment:
-      PGRST_DB_URI: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgrest-db:5432/db
+      PGRST_DB_URI: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgrest-db:5432/${POSTGRES_DB}
       PGRST_DB_SCHEMA: public
-      PGRST_DB_ANON_ROLE: user
+      PGRST_DB_ANON_ROLE: ${POSTGRES_USER}
     links:
       - postgres:postgres
     depends_on:
@@ -25,7 +25,9 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - PUID=${PUID}
-      - PGID=${PGID}    
+      - PGID=${PGID}   
+      - POSTGRES_NON_ROOT_USER=${POSTGRES_NON_ROOT_USER}
+      - POSTGRES_NON_ROOT_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}      
     volumes:
       - ${POSTGREST_DB_PATH}:/var/lib/postgresql/data
     healthcheck:

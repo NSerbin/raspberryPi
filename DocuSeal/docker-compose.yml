@@ -1,0 +1,46 @@
+---
+version: '3.9'
+
+services:
+  docuseal:
+    image: koopernic/docuseal-armv7:1.6.2
+    container_name: docuseal-app    
+    ports:
+      - 3008:3000
+    volumes:
+      - ${DOCUSEAL_PATH}:/data
+    environment:
+#      - FORCE_SSL=${HOST}
+      - FORCE_SSL=false
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@docuseal-db:5432/${POSTGRES_DB}
+      - SECRET_KEY_BASE=${SECRET_KEY}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16.3-alpine3.20
+    container_name: docuseal-db
+    ports:
+      - 5435:5432   
+    volumes:
+      - ${DOCUSEAL_DB_PATH}:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PUID=${PUID}
+      - PGID=${PGID}  
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB", "-h", "localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true      

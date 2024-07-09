@@ -1,0 +1,31 @@
+---
+version: "3.9"
+
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "83:80/tcp"
+    environment:
+      TZ: ${TZ}
+      WEBPASSWORD: ${WEBPASSWORD}
+    volumes:
+      - ${PIHOLE_PATH}:/etc/pihole/:rw
+      - ${DNSMASQ_PATH}:/etc/dnsmasq.d/:rw
+    cap_add:
+      - ${CAPABILITIES}
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"     
+
+networks:
+  default:
+    name: ${NETWORK}
+    external: true

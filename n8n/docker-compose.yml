@@ -2,17 +2,17 @@
 version: '3.9'
 services:
   n8n:
-    image: n8nio/n8n:1.24.1
+    image: koopernic/n8n-armv7:1.39.1
     container_name: n8n-app
     volumes:
       - n8n_data:/home/node/.n8n
       - /var/run/docker.sock:/var/run/docker.sock
       - ${N8N_PATH}:/files
     ports:
-      - 5678:85
+      - 5678:5678
     environment:
       - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL}
+      - N8N_EDITOR_BASE_URL=${N8N_HOST}
       - N8N_BASIC_AUTH_USER=${N8N_USER}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
       - N8N_HOST=${N8N_HOST}
@@ -28,7 +28,7 @@ services:
       - DB_POSTGRESDB_USER=${POSTGRES_USER}
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_POSTGRESDB_SCHEMA=public
-      - VUE_APP_URL_BASE_API=${N8N_URL_BASE_API}
+      - VUE_APP_URL_BASE_API=${N8N_HTTP_URL}
       - N8N_EMAIL_MODE=smtp
       - N8N_SMTP_PORT=${SMTP_PORT}
       - N8N_SMTP_HOST=${SMTP_HOST}
@@ -36,9 +36,7 @@ services:
       - N8N_SMTP_PASS=${SMTP_PASSWORD}
       - N8N_SMTP_SENDER=${SMTP_FROM}
       - N8N_SMTP_SSL=false      
-    depends_on:
-      n8n-db:
-        condition: service_healthy
+
     restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
